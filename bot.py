@@ -1,38 +1,43 @@
 from flask import Flask, request, jsonify
-import requests
 import os
+import fireworksdk
 
 app = Flask(__name__)
 
-FIREWORKS_API_KEY = os.getenv("FIREWORKS_API_KEY")
+# Создаем клиента Fireworks API с API-ключом
+api_key = os.getenv("FIREWORKS_API_KEY")
+client = fireworksdk.Client(api_key=api_key)
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    # Получаем сообщение от пользователя
     user_message = request.json.get("message")
     if not user_message:
         return jsonify({"error": "Сообщение не может быть пустым"}), 400
 
     try:
-        response = requests.post(
-            "https://api.fireworks.ai/inference/v1/chat/completions",
-            headers={"Authorization": f"Bearer {FIREWORKS_API_KEY}"},
-            json={
-                "model": "accounts/fireworks/models/mixtral-8x7b-instruct",
-                "messages": [
-                    {"role": "system", "content": "Ты помощник онлайн-магазина, помогай клиентам с покупками."},
-                    {"role": "user", "content": user_message}
-                ]
-            }
+        # Отправляем запрос в Fireworks AI
+        response = client.chat.completions.create(
+            model="accounts/fireworks/models/llama-v2-7b-chat",
+            messages=[
+                {"role": "system", "content": "Ты помощник онлайн-магазина, помогай клиентам с покупками."},
+                {"role": "user", "content": user_message}
+            ]
         )
 
-        bot_response = response.json()
-        return jsonify({"response": bot_response["choices"][0]["message"]["content"]})
+        # Проверяем, есть ли 'choices' в ответе
+        if not hasattr(response, "choices") or not response.choices:
+            return jsonify({"error": "Ответ Fireworks пустой или неверный"}), 500
 
+        bot_response = response.choices[0].message.content
+        return jsonify({"response": bot_response})
+
+    except fireworksdk.FireworkError as e:
+        return jsonify({"error": f"Ошибка Fireworks AI: {str(e)}"}), 500
     except Exception as e:
-        return jsonify({"error": f"Ошибка: {str(e)}"}), 500
+        return jsonify({"error": f"Неизвестная ошибка: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000)
 
         

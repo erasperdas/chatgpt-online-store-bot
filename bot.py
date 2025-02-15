@@ -23,7 +23,7 @@ def chat():
             ]
         )
 
-        if not hasattr(response, "choices") or not response.choices:
+           if not hasattr(response, "choices") or not response.choices:
             return jsonify({"error": "Ответ Fireworks пустой или неверный"}), 500
 
         bot_response = response.choices[0].message.content

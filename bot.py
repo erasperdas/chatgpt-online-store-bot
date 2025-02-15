@@ -4,20 +4,18 @@ import fireworksdk
 
 app = Flask(__name__)
 
-# Создаем клиента Fireworks API с API-ключом
 api_key = os.getenv("FIREWORKS_API_KEY")
 client = fireworksdk.Client(api_key=api_key)
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    # Получаем сообщение от пользователя
+   
     user_message = request.json.get("message")
     if not user_message:
         return jsonify({"error": "Сообщение не может быть пустым"}), 400
 
     try:
-        # Отправляем запрос в Fireworks AI
-        response = client.chat.completions.create(
+         response = client.chat.completions.create(
             model="accounts/fireworks/models/llama-v2-7b-chat",
             messages=[
                 {"role": "system", "content": "Ты помощник онлайн-магазина, помогай клиентам с покупками."},
@@ -25,7 +23,6 @@ def chat():
             ]
         )
 
-        # Проверяем, есть ли 'choices' в ответе
         if not hasattr(response, "choices") or not response.choices:
             return jsonify({"error": "Ответ Fireworks пустой или неверный"}), 500
 

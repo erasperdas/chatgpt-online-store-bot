@@ -1,4 +1,4 @@
 flask
-fireworks
+fireworks-ai
 requests
 gunicorn

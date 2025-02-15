@@ -17,7 +17,7 @@ def chat():
 
         # Отправляем запрос в OpenAI
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Ты помощник онлайн-магазина, помогай клиентам с покупками."},
                 {"role": "user", "content": user_message}
